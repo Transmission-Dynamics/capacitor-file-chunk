@@ -44,6 +44,12 @@
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build"
   },
+  "dependencies": {
+    "@capacitor/filesystem": "^5.2.1",
+    "@types/libsodium-wrappers": "^0.7.14",
+    "libsodium-wrappers": "^0.7.13",
+    "uint8array-extras": "^1.1.0"
+  },
   "devDependencies": {
     "@capacitor/android": "^5.0.0",
     "@capacitor/core": "^5.0.0",

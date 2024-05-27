@@ -7,4 +7,5 @@ const FileChunk = registerPlugin<FileChunkPlugin>('FileChunk', {
 });
 
 export * from './definitions';
+export * from './FileChunkManager';
 export { FileChunk };
