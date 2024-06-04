@@ -89,10 +89,17 @@ public class FileChunkPlugin: CAPPlugin {
         let tOffset = UInt64(call.getInt("offset", 0));
         let tLength = Int(call.getInt("length", 0));
         
+        guard let tPathURL = URL(string: tPath) else {
+            print("Failed to convert tPath \(tPath) to URL")
+            call.resolve(["data": ""])
+            return
+        }
+        
         // GET THE FILE HANDLE AND READ THE CHUNK
-        guard let fileHandle = FileHandle(forReadingAtPath: tPath) else {
-            call.resolve(["data":""])
-            return;
+        guard let fileHandle = try? FileHandle(forReadingFrom: tPathURL) else {
+            print("Failed to initialize FileHandle for \(tPathURL.absoluteString)")
+            call.resolve(["data": ""])
+            return
         }
         defer {
             fileHandle.closeFile()
