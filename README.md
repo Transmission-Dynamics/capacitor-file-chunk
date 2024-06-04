@@ -11,27 +11,27 @@ With the Capacitor File Chunk plugin, handling large files is now more efficient
 ## Table of Contents
 
 - [Install](#install)
-   - [Install Android](#install-android)
-   - [Install iOS](#install-ios)
+  - [Install Android](#install-android)
+  - [Install iOS](#install-ios)
+- [Transmission Dynamics Publishing](#transmission-dynamics-publishing)
 - [Demo](#demo)
-- [Usage](#usage)
-   - [1. Create the FileChunkManager](#1-create-the-filechunkmanager)
-   - [2. Start the server](#2-start-the-server)
-   - [3. Create an empty file](#3-create-an-empty-file)
-   - [4. Write to a file](#4-write-to-a-file)
-   - [5. Check the file size](#5-check-the-file-size)
-   - [6. Read from the file](#6-read-from-the-file)
-   - [7. Stop the server](#7-stop-the-server)
+- [Use](#use)
+  - [1. Create the FileChunkManager](#1-create-the-filechunkmanager)
+  - [2. Start the server](#2-start-the-server)
+  - [3. Create an empty file](#3-create-an-empty-file)
+  - [4. Write to a file](#4-write-to-a-file)
+  - [5. Check the file size](#5-check-the-file-size)
+  - [6. Read from the file](#6-read-from-the-file)
+  - [7. Stop the server](#7-stop-the-server)
 - [Usage Examples](#usage-examples)
 - [Benchmarking](#benchmarking)
 - [Security](#security)
 - [Final Thoughts](#final-thoughts)
 
-
 ## Install
 
 | Plugin Version | Capacitor Version |
-|----------------|-------------------|
+| -------------- | ----------------- |
 | 1.0.0          | Capacitor 5       |
 | 0.9.2          | Capacitor 4       |
 
@@ -41,14 +41,17 @@ npx cap sync
 ```
 
 ## Install Android
-### 1. Configure `AndroidManifest.xml` to allow localhost.
+
+### 1. Configure `AndroidManifest.xml` to allow localhost
+
 ```xml
 <application
     android:usesCleartextTraffic="true"
     ...
 ```
 
-### 2. Add library to dependencies:
+### 2. Add library to dependencies
+
 ```gradle
 // build.gradle
 dependencies {
@@ -56,7 +59,9 @@ dependencies {
     implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.1'
 }
 ```
-### 3. To fix the warning allowBackup add `xmlns:tools="http://schemas.android.com/tools"` and `tools:replace="android:allowBackup"` to your Manifest:
+
+### 3. To fix the warning allowBackup add `xmlns:tools="http://schemas.android.com/tools"` and `tools:replace="android:allowBackup"` to your Manifest
+
 ```xml
 <!-- AndroidManifest.xml -->
 <?xml version="1.0" encoding="utf-8"?>
@@ -75,7 +80,8 @@ dependencies {
 
 ## Install iOS
 
-### 1. Configure `Info.plist` to allow localhost.
+### 1. Configure `Info.plist` to allow localhost
+
 ```xml
     <key>NSAppTransportSecurity</key>
     <dict>
@@ -83,9 +89,14 @@ dependencies {
         <true/>
     </dict>
 ```
+
 ### 2. Add Apple CryptoKit
 
 Open your Xcode project, and in the menu bar, go to **File -> Add Packages**.... Then, select `swift-crypto` from Apple Swift Packages and click on **Add Package**.
+
+## Transmission Dynamics publishing
+
+This package is published on AWS CodeArtifact. To publish the new version you will need CODEARTIFACT_AUTH_TOKEN and proper registry in `.npmrc` file. More thorough instructions are included in the details of the AWS CodeArtifact repository you want to publish this package to.
 
 ## Demo
 
@@ -110,6 +121,7 @@ mFileChunkManager: FileChunkManager = new FileChunkManager();
 ```
 
 ### 2. Start the server
+
 Although there are more options for starting the server (like port, port range), they aren't required.
 
 ```javascript
@@ -123,8 +135,11 @@ export interface FileChunkManagerStartConfig {
   chunkSize?: number; // The maximum body size for the PUT (the server adds the encryption IV and Auth Tag size).
 }
 
-const tFileChunkServerInfo = await this.mFileChunkManager.startServer({ encryption: true });
+const tFileChunkServerInfo = await this.mFileChunkManager.startServer({
+  encryption: true,
+});
 ```
+
 The `tFileChunkServerInfo` variable follows this interface:
 
 ```javascript
@@ -138,18 +153,24 @@ export interface FileChunkServerInfo {
   ready: boolean;
 }
 ```
+
 If everything is successful, "ready" should be true. You also cannot make PUT requests larger than the chunkSize, but you can set this value when you start the server. For optimal performance, using a chunk size of around 10 megabytes (default) is the sweet spot. However, feel free to experiment with different values to find the best balance for your specific use case.
+
 ### 3. Create an empty file
 
 Once the plugin is started and ready, you can create an empty file just like with the Capacitor Filesystem:
 
 ```javascript
-const tPath = await this.mFileChunkManager.createEmptyFile('/test-file.bin', Directory.Data);
+const tPath = await this.mFileChunkManager.createEmptyFile(
+  '/test-file.bin',
+  Directory.Data,
+);
 ```
 
 This returns a path that you can use to interact with the plugin.
 
 ### 4. Write to a file
+
 ```javascript
 const tData: Uint8Array = new Uint8Array([...]); // the data you want to write
 const tOK = await this.mFileChunkManager.appendChunkToFile(tPath, tData);
@@ -166,7 +187,11 @@ const tFileSize = await this.mFileChunkManager.checkFileSize(tPath);
 ### 6. Read from the file
 
 ```javascript
-const tChunkData = await this.mFileChunkManager.readFileChunk(tPath, tOffset, tLength2Read);
+const tChunkData = await this.mFileChunkManager.readFileChunk(
+  tPath,
+  tOffset,
+  tLength2Read,
+);
 ```
 
 Provide an offset and the length you want to read. Be cautious not to read beyond the file size, as the file size isn't checked for performance reasons. If the read fails, it returns an empty array.
@@ -178,6 +203,7 @@ When you no longer need the server, you can either let it run or stop it:
 ```javascript
 await this.mFileChunkManager.stopServer();
 ```
+
 If you need it again, simply start it. It will generate a new encryption key, use a new port, and create a new authentication token.
 
 You're welcome to create your own fetch requests to the server instead of relying on the FileChunkManager. Just review the existing code for guidance and develop a custom implementation that suits your requirements.
@@ -186,8 +212,13 @@ You're welcome to create your own fetch requests to the server instead of relyin
 
 There is a new method readFileChunk in the plugin. This reads from the filesystem without using the server (just like the capacitor filesystem and uses the capacitor bridge)
 You can access it via FileChunkManager as follows:
+
 ```javascript
-const tChunkData = await this.mFileChunkManager.readFileChunkFS(tPath, tOffset, tLength2Read);
+const tChunkData = await this.mFileChunkManager.readFileChunkFS(
+  tPath,
+  tOffset,
+  tLength2Read,
+);
 ```
 
 ## Usage Examples
@@ -195,14 +226,17 @@ const tChunkData = await this.mFileChunkManager.readFileChunkFS(tPath, tOffset, 
 The Capacitor File Chunk plugin provides a flexible foundation for various use cases involving large files in Capacitor applications. Some common usage examples include:
 
 ### Uploading large files
+
 Efficiently upload large files in Capacitor applications by reading parts of a file and uploading them in chunks. This method reduces the risk of timeouts and network errors, ensuring seamless uploading of large files for users without any loss of data or performance issues. Note that the actual implementation depends on the server and how the files are stored.
 
 ### Downloading large files
+
 Download large files in smaller, manageable chunks and merge them into a single file. This is particularly useful for applications that need to download large files, such as videos or images, without consuming too much memory. Keep in mind that this feature depends on the backend. If your backend already divides files into chunks, using this feature is straightforward. However, if your backend does not divide files, you will need to make GET requests with the range header to retrieve parts of a file.
+
 - **[Example using fetch and range headers](https://github.com/qrclip/capacitor-file-chunk/tree/main/demo/src/app/download01)**
 
-
 ### Storing offline data
+
 Efficiently store offline data, such as documents, images, or media files. By breaking the data down into smaller chunks and storing them in the local file system, the plugin reduces the risk of performance issues and ensures that users can access their data quickly and easily.
 
 #### Important Note
@@ -214,10 +248,11 @@ While the Capacitor File Chunk plugin provides a powerful foundation for the abo
 The tables below present the time taken for writing and reading operations using Capacitor Filesystem, Capacitor File Chunk, and Capacitor File Chunk with encryption. The numbers represent the time taken in seconds to complete the operation for different file sizes.
 
 ### Writing
+
 #### Android (Mi 9T) Writing
 
 | Size    | Filesystem | FileChunk | FileChunk<br/>(encrypted) |
-|---------|------------|-----------|---------------------------|
+| ------- | ---------- | --------- | ------------------------- |
 | 10 MB   | 1.2s       | 0.15s     | 0.8s                      |
 | 100 MB  | 9.8s       | 1.5s      | 3.1s                      |
 | 250 MB  | 24.0s      | 3.9s      | 7.7s                      |
@@ -225,10 +260,11 @@ The tables below present the time taken for writing and reading operations using
 | 1000 MB | 98.0s      | 18.0s     | 31.0s                     |
 
 ###
+
 #### iOS (iPhone SE 2020) Writing
 
 | Size    | Filesystem | FileChunk | FileChunk <br/>(encrypted) |
-|---------|------------|-----------|----------------------------|
+| ------- | ---------- | --------- | -------------------------- |
 | 10 MB   | 0.25s      | 0.079s    | 0.096s                     |
 | 100 MB  | 2.4s       | 0.30s     | 0.81s                      |
 | 250 MB  | 5.9s       | 0.82s     | 2.0s                       |
@@ -240,18 +276,21 @@ The tables below present the time taken for writing and reading operations using
 The benchmarks for reading with the Capacitor filesystem use the plugin's own method for reading the file chunk, since the Capacitor filesystem doesn't offer this possibility.
 
 #### Android (Mi 9T) Reading
+
 | Size    | Filesystem | FileChunk | FileChunk<br/>(encrypted) |
-|---------|------------|-----------|---------------------------|
+| ------- | ---------- | --------- | ------------------------- |
 | 10 MB   | 2.7s       | 0.15s     | 0.27s                     |
 | 100 MB  | 9.8s       | 1.2s      | 2.8s                      |
 | 250 MB  | 23.0s      | 3.0s      | 7.1s                      |
 | 500 MB  | 48.0s      | 6.5s      | 14.0s                     |
 | 1000 MB | crash      | 12.0s     | 28.0s                     |
+
 ###
+
 #### iOS (iPhone SE 2020) Reading
 
 | Size    | Filesystem | FileChunk | FileChunk <br/>(encrypted) |
-|---------|------------|-----------|----------------------------|
+| ------- | ---------- | --------- | -------------------------- |
 | 10 MB   | 0.8s       | 0.018s    | 0.070s                     |
 | 100 MB  | 2.6s       | 0.17s     | 0.69s                      |
 | 250 MB  | 5.7s       | 0.61s     | 1.7s                       |
