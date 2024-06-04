@@ -11,6 +11,8 @@ xcuserdata
 # macOS files
 .DS_Store
 
+# NPM files
+.npmrc
 
 
 # Based on Android gitignore template: https://github.com/github/gitignore/blob/HEAD/Android.gitignore
